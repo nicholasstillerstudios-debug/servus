@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>SERVUS</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand" id="brandName">SERVUS</div>
+      <div class="model" id="modelLabel">…</div>
+      <button class="ghost" id="historyBtn" title="Historico">⌛</button>
+      <button class="ghost" id="compactBtn" title="Modo compacto">▣</button>
+      <button class="ghost" id="settingsBtn" title="Configuracoes">⚙</button>
+      <button class="ghost" id="resetBtn" title="Nova conversa">+</button>
+    </header>
+
+    <section class="body">
+      <div class="blueprint"></div>
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+      <span class="wake-badge" id="wakeBadge" hidden>● ESCUTANDO</span>
+
+      <div class="hud" id="orb">
+        <!-- HUD radial estilo JARVIS -->
+        <svg class="hud-svg" viewBox="-100 -100 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- ring 1 - outer com ticks (rotacao lenta) -->
+          <g class="ring-outer">
+            <circle cx="0" cy="0" r="92" fill="none" stroke="currentColor" stroke-width=".6" opacity=".35"/>
+            <circle cx="0" cy="0" r="86" fill="none" stroke="currentColor" stroke-width=".4" opacity=".25"/>
+            <!-- tick marks -->
+            <g class="ticks">
+              <!-- gerado em loop por CSS via use? mais simples colocar manualmente -->
+            </g>
+          </g>
+
+          <!-- ring 2 - cresta com gap (segment) -->
+          <g class="ring-cresta">
+            <circle cx="0" cy="0" r="74" fill="none" stroke="currentColor" stroke-width="1.4"
+                    stroke-dasharray="180 50 90 50" opacity=".65"/>
+            <circle cx="0" cy="0" r="74" fill="none" stroke="currentColor" stroke-width=".4" opacity=".15"/>
+          </g>
+
+          <!-- arc destacado (yellow accent like jarvis) -->
+          <g class="ring-accent">
+            <path d="M -68 -28 A 74 74 0 0 0 -68 28"
+                  fill="none" stroke="var(--hud-accent)" stroke-width="3" stroke-linecap="round"/>
+          </g>
+
+          <!-- ring 3 - inner -->
+          <g class="ring-inner">
+            <circle cx="0" cy="0" r="58" fill="none" stroke="currentColor" stroke-width=".5" opacity=".5"/>
+            <circle cx="0" cy="0" r="52" fill="none" stroke="currentColor" stroke-width=".3" opacity=".3"/>
+          </g>
+
+          <!-- ring contra-rotativo segmentado -->
+          <g class="ring-spin-reverse">
+            <circle cx="0" cy="0" r="44" fill="none" stroke="currentColor" stroke-width=".8"
+                    stroke-dasharray="3 6" opacity=".7"/>
+          </g>
+
+          <!-- nucleo -->
+          <g class="hud-core">
+            <circle cx="0" cy="0" r="36" fill="url(#coreGrad)" opacity=".15"/>
+            <circle cx="0" cy="0" r="36" fill="none" stroke="currentColor" stroke-width=".6" opacity=".55"/>
+            <circle cx="0" cy="0" r="3" fill="currentColor"/>
+          </g>
+
+          <!-- segmento "energia" no topo -->
+          <g class="hud-energy">
+            <rect x="-16" y="-90" width="32" height="3" fill="currentColor" opacity=".5"/>
+            <rect x="-12" y="-86" width="24" height="2" fill="currentColor" opacity=".3"/>
+          </g>
+
+          <!-- dots indicadores em 60 graus -->
+          <g class="hud-dots">
+            <circle cx="0" cy="-80" r="1.5" fill="var(--hud-accent)"/>
+            <circle cx="69.3" cy="-40" r="1.2" fill="currentColor" opacity=".8"/>
+            <circle cx="69.3" cy="40" r="1.2" fill="currentColor" opacity=".8"/>
+            <circle cx="0" cy="80" r="1.2" fill="currentColor" opacity=".8"/>
+            <circle cx="-69.3" cy="40" r="1.2" fill="currentColor" opacity=".8"/>
+            <circle cx="-69.3" cy="-40" r="1.2" fill="currentColor" opacity=".8"/>
+          </g>
+
+          <defs>
+            <radialGradient id="coreGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="currentColor" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="currentColor" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+        </svg>
+
+        <div class="hud-label" id="hudLabel">S.E.R.V.U.S.</div>
+      </div>
+
+      <div class="status" id="status">PRONTO</div>
+    </section>
+
+    <section class="chat" id="chat"></section>
+
+    <footer class="composer">
+      <button class="mic" id="micBtn" title="Falar">
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path fill="currentColor" d="M12 14a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/>
+        </svg>
+      </button>
+      <input id="textInput" type="text" placeholder="Diga ou digite algo…" autocomplete="off" />
+      <button class="send" id="sendBtn" title="Enviar">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path fill="currentColor" d="M3 20l18-8L3 4l0 6 13 2-13 2z"/>
+        </svg>
+      </button>
+    </footer>
+  </div>
+
+  <!-- ===== painel de configuracao ===== -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-card">
+      <header class="modal-head">
+        <h2>Configuracoes</h2>
+        <button class="ghost" id="closeBtn">✕</button>
+      </header>
+
+      <nav class="tabs">
+        <button class="tab active" data-tab="identity">Identidade</button>
+        <button class="tab" data-tab="voice">Voz</button>
+        <button class="tab" data-tab="mood">Humor</button>
+        <button class="tab" data-tab="accent">Sotaque</button>
+        <button class="tab" data-tab="model">Modelo</button>
+        <button class="tab" data-tab="devices">Dispositivos</button>
+        <button class="tab" data-tab="memory">Memoria</button>
+        <button class="tab" data-tab="intel">Inteligencia</button>
+        <button class="tab" data-tab="msgs">Mensagens</button>
+        <button class="tab" data-tab="hw">Hardware</button>
+        <button class="tab" data-tab="system">Sistema</button>
+      </nav>
+
+      <div class="panel" id="panel-identity">
+        <label>Nome do assistente
+          <input type="text" id="cfgName" maxlength="24" />
+        </label>
+        <label>Personalidade / instrucoes base
+          <textarea id="cfgPersona" rows="6" placeholder="Descreva como ele deve agir, sua funcao, limites…"></textarea>
+        </label>
+        <p class="hint">Essa descricao vira o system prompt do modelo.</p>
+      </div>
+
+      <div class="panel" id="panel-voice" hidden>
+        <label>Presets de voz
+          <div class="presets" id="cfgVoicePresets"></div>
+        </label>
+        <p class="hint">Clique para aplicar voz + velocidade + tom + humor de uma vez.</p>
+
+        <div class="divider"></div>
+
+        <label>Voz
+          <select id="cfgVoice"></select>
+        </label>
+        <label>Velocidade
+          <select id="cfgRate">
+            <option value="-20%">Lenta</option>
+            <option value="-10%">Devagar</option>
+            <option value="+0%">Normal</option>
+            <option value="+5%">Levemente acelerada</option>
+            <option value="+15%">Rapida</option>
+            <option value="+30%">Muito rapida</option>
+          </select>
+        </label>
+        <label>Tom (pitch)
+          <select id="cfgPitch">
+            <option value="-30Hz">Muito grave</option>
+            <option value="-15Hz">Grave</option>
+            <option value="+0Hz">Natural</option>
+            <option value="+15Hz">Agudo</option>
+            <option value="+30Hz">Muito agudo</option>
+          </select>
+        </label>
+        <button class="primary outline" id="previewBtn">▶ Testar voz</button>
+
+        <div class="divider"></div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Sempre escutando</div>
+            <div class="row-sub">Ativa por palavra-gatilho, sem clicar no microfone</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="cfgWake" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <label>Palavras-gatilho (qualquer uma ativa)
+          <div class="row-flex">
+            <input type="text" id="cfgWakeWordInput" placeholder="ex: servus, jarvis, atende, computador" style="flex:1" />
+            <button class="primary" id="cfgWakeAddBtn">+</button>
+          </div>
+          <div id="cfgWakeChips" style="margin-top:8px"></div>
+        </label>
+        <p class="hint">Ex.: diga "Servus, abre o Bloco de Notas" ou "Jarvis, qual o uso de CPU". Qualquer palavra da lista ativa.</p>
+
+        <div class="row-flex">
+          <button class="primary outline" id="wakeTestBtn">🎤 Testar microfone (5s)</button>
+          <span class="dev-status" id="wakeTestStatus">—</span>
+        </div>
+        <div id="wakeTestTranscript" class="dev-sample-item" hidden></div>
+
+        <div class="divider"></div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Visao continua da tela</div>
+            <div class="row-sub">Anexa screenshot a CADA mensagem (LLM ve sua tela em tempo real)</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgScreenMode" /><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-mood" hidden>
+        <div class="chips" id="cfgMood"></div>
+        <p class="hint">Define o tom das respostas.</p>
+      </div>
+
+      <div class="panel" id="panel-accent" hidden>
+        <div class="chips" id="cfgAccent"></div>
+        <p class="hint">Sotaque/girias usados na fala e escrita.</p>
+      </div>
+
+      <div class="panel" id="panel-model" hidden>
+        <label>Velocidade vs inteligencia
+          <div class="presets" id="cfgSpeedModes"></div>
+        </label>
+        <p class="hint">Rapido = Haiku (instantaneo, ideal pra conversa). Inteligente = Opus (lento, pra tarefas complexas).</p>
+
+        <div class="divider"></div>
+
+        <label>Provedor de modelo
+          <select id="cfgModel"></select>
+        </label>
+        <p class="hint">
+          <b>Auto</b>: usa Claude se ANTHROPIC_API_KEY existir, senao OpenAI, senao Ollama local.
+        </p>
+
+        <div class="divider"></div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Ollama local</div>
+            <div class="row-sub" id="ollamaStatus">Verificando…</div>
+          </div>
+          <button class="primary outline" id="ollamaRefreshBtn">Atualizar</button>
+        </div>
+        <label>Modelo Ollama
+          <select id="cfgOllamaModel">
+            <option value="">(padrao: llama3.1)</option>
+          </select>
+        </label>
+
+        <div class="divider"></div>
+        <label>Navegador para comandos de internet
+          <select id="cfgBrowser"></select>
+        </label>
+        <p class="hint">Usado pra abrir URLs, tocar musica no YouTube, etc.</p>
+      </div>
+
+      <div class="panel" id="panel-devices" hidden>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Auto-scan em background</div>
+            <div class="row-sub">Procura dispositivos novos (BLE + Chromecast) e te notifica</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgAutoScan" /><span class="slider"></span></label>
+        </div>
+        <label>Intervalo (minutos)
+          <input type="number" id="cfgAutoScanInterval" min="2" max="120" value="10" />
+        </label>
+        <div class="divider"></div>
+
+        <label>Plataforma
+          <select id="cfgDevProvider">
+            <option value="none">Nenhuma</option>
+            <option value="home_assistant">Home Assistant</option>
+          </select>
+        </label>
+        <div id="haFields">
+          <label>URL do Home Assistant
+            <input type="text" id="cfgHaUrl" placeholder="http://192.168.1.50:8123" />
+          </label>
+          <label>Long-Lived Access Token
+            <input type="password" id="cfgHaToken" placeholder="eyJhbGc..." />
+          </label>
+          <div class="row-flex">
+            <button class="primary outline" id="testDevBtn">Testar conexao</button>
+            <span class="dev-status" id="devStatus">—</span>
+          </div>
+          <div id="devSample" hidden>
+            <p class="hint" style="margin-top:8px">Amostra de dispositivos detectados:</p>
+            <div id="devSampleList"></div>
+          </div>
+          <p class="hint">
+            Como obter o token: abra o Home Assistant > seu perfil (canto inferior esquerdo)
+            > aba "Tokens de acesso de longa duracao" > "Criar token". O SERVUS injeta a
+            lista de dispositivos no contexto - ai voce pode pedir "liga a luz da sala",
+            "fecha a persiana", "poe o AC em 22 graus", etc.
+          </p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">MQTT</div>
+            <div class="row-sub">Broker para devices Tuya local, ESP32, etc</div>
+          </div>
+        </div>
+        <label>Host
+          <input type="text" id="cfgMqttHost" placeholder="192.168.1.100" />
+        </label>
+        <div class="row-flex">
+          <label style="flex:1">Porta
+            <input type="text" id="cfgMqttPort" value="1883" />
+          </label>
+          <label style="flex:1">Usuario
+            <input type="text" id="cfgMqttUser" placeholder="(opcional)" />
+          </label>
+        </div>
+        <label>Senha
+          <input type="password" id="cfgMqttPass" placeholder="(opcional)" />
+        </label>
+        <button class="primary outline" id="mqttConnectBtn">Conectar</button>
+        <span class="dev-status" id="mqttStatus" style="margin-top:4px">—</span>
+
+        <div class="divider"></div>
+
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Chromecast</div>
+            <div class="row-sub">Devices na rede para cast de midia</div>
+          </div>
+          <button class="primary outline" id="castScanBtn">Escanear</button>
+        </div>
+        <div id="castList"></div>
+
+        <div class="divider"></div>
+
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Bluetooth (BLE)</div>
+            <div class="row-sub">Escaneia dispositivos proximos e mantem uma lista de conhecidos</div>
+          </div>
+          <button class="primary outline" id="bleScanBtn">Escanear</button>
+        </div>
+        <div id="bleResults"></div>
+        <div id="bleKnown">
+          <p class="hint" style="margin-top:8px">Dispositivos conhecidos:</p>
+          <div id="bleKnownList"></div>
+        </div>
+        <p class="hint">
+          Dispositivos conhecidos sao injetados no contexto para o SERVUS saber
+          que existem e poder conectar/ler/escrever via bleak.
+        </p>
+      </div>
+
+      <div class="panel" id="panel-memory" hidden>
+        <div class="row-flex">
+          <input type="text" id="newFactText" placeholder="Ex: meu CEP e 04567-890" style="flex:1" />
+          <input type="text" id="newFactCat" placeholder="categoria" style="width:120px" value="geral" />
+          <button class="primary" id="addFactBtn">Adicionar</button>
+        </div>
+        <p class="hint">
+          Fatos persistentes injetados no contexto. SERVUS lembra entre sessoes.
+          Ex: "meu CEP", "usuario prefere respostas curtas", "trabalha com Drizzle e Postgres".
+        </p>
+        <div id="factsList"></div>
+      </div>
+
+      <div class="panel" id="panel-intel" hidden>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Streaming TTS</div>
+            <div class="row-sub">Fala enquanto gera (frase por frase, sem esperar resposta toda)</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgStreamTTS" /><span class="slider"></span></label>
+        </div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Voice barge-in</div>
+            <div class="row-sub">Interrompe a fala se voce comecar a falar</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgBargeIn" /><span class="slider"></span></label>
+        </div>
+
+        <div class="divider"></div>
+        <label>Engine de transcricao (STT)
+          <select id="cfgSTTEngine">
+            <option value="browser">Browser (Web Speech, cloud)</option>
+            <option value="whisper_local">Whisper local (offline, mais preciso)</option>
+          </select>
+        </label>
+        <p class="hint">Whisper baixa o modelo tiny (~40MB) na primeira vez.</p>
+
+        <div class="divider"></div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Wake word offline (OpenWakeWord)</div>
+            <div class="row-sub" id="voskStatus">verificando…</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgWakeOffline" /><span class="slider"></span></label>
+        </div>
+        <label>Modelo de wake (~95% acuracia)
+          <select id="cfgWakeModelOffline">
+            <option value="hey_jarvis">Hey Jarvis (recomendado)</option>
+            <option value="alexa">Alexa</option>
+            <option value="hey_mycroft">Hey Mycroft</option>
+            <option value="hey_rhasspy">Hey Rhasspy</option>
+          </select>
+        </label>
+        <p class="hint">
+          Substitui o Vosk antigo. Detector dedicado a wake words - muito mais preciso.
+          Apos detectar, captura ~5s e transcreve com Whisper local.
+        </p>
+        <div id="voskDownload" hidden>
+          <button class="primary outline" id="voskDownloadBtn">Baixar modelos (~5MB)</button>
+          <div class="progress" id="voskProgress" hidden><div class="progress-bar" id="voskProgressBar"></div></div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Modo multi-etapa</div>
+            <div class="row-sub">Para tarefas complexas, planeja antes de executar</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgMultiStep" /><span class="slider"></span></label>
+        </div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Auto-correcao</div>
+            <div class="row-sub">Tenta outra abordagem se um comando falhar</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgAutoRetry" /><span class="slider"></span></label>
+        </div>
+
+        <div class="divider"></div>
+        <div class="row-text">
+          <div class="row-title">RAG - Conhecimento local</div>
+          <div class="row-sub" id="ragStatus">Indexar pasta de documentos para SERVUS poder consultar</div>
+        </div>
+        <div class="row-flex">
+          <input type="text" id="cfgRagFolder" placeholder="C:\Users\nicho\Documents" style="flex:1" />
+          <button class="primary" id="ragIndexBtn">Indexar</button>
+        </div>
+        <p class="hint" id="ragEmbedder">Embedder: verificando…</p>
+        <div id="ragSources"></div>
+      </div>
+
+      <div class="panel" id="panel-msgs" hidden>
+        <!-- sub-tabs internas -->
+        <nav class="subtabs">
+          <button class="subtab active" data-sub="email">Email</button>
+          <button class="subtab" data-sub="telegram">Telegram</button>
+          <button class="subtab" data-sub="whatsapp">WhatsApp</button>
+          <button class="subtab" data-sub="contacts">Contatos</button>
+          <button class="subtab" data-sub="templates">Templates</button>
+        </nav>
+
+        <div class="subpanel" id="sub-email">
+          <label>Email
+            <input type="text" id="cfgEmailUser" placeholder="seu@gmail.com" />
+          </label>
+          <label>Senha (use App Password no Gmail)
+            <input type="password" id="cfgEmailPass" placeholder="..." />
+          </label>
+          <div class="row-flex">
+            <label style="flex:1">SMTP host
+              <input type="text" id="cfgEmailSmtpHost" value="smtp.gmail.com" />
+            </label>
+            <label style="width:80px">Porta
+              <input type="text" id="cfgEmailSmtpPort" value="587" />
+            </label>
+          </div>
+          <div class="row-flex">
+            <label style="flex:1">IMAP host
+              <input type="text" id="cfgEmailImapHost" value="imap.gmail.com" />
+            </label>
+            <label style="width:80px">Porta
+              <input type="text" id="cfgEmailImapPort" value="993" />
+            </label>
+          </div>
+          <div class="row-flex">
+            <button class="primary outline" id="emailSaveBtn">Salvar</button>
+            <button class="primary outline" id="emailInboxBtn">Ler inbox</button>
+          </div>
+          <span class="dev-status" id="emailStatus">—</span>
+          <div id="emailInbox"></div>
+          <p class="hint">Gmail: ative App Password em https://myaccount.google.com/apppasswords</p>
+        </div>
+
+        <div class="subpanel" id="sub-telegram" hidden>
+          <label>Bot Token
+            <input type="text" id="cfgTgToken" placeholder="123:ABC..." />
+          </label>
+          <label>Chat ID padrao
+            <input type="text" id="cfgTgChatId" placeholder="123456789" />
+          </label>
+          <div class="row-flex">
+            <button class="primary outline" id="tgSaveBtn">Salvar</button>
+            <button class="primary outline" id="tgTestBtn">Enviar teste</button>
+            <button class="primary outline" id="tgInboxBtn">Ler ultimas</button>
+          </div>
+          <span class="dev-status" id="tgStatus">—</span>
+          <div id="tgInbox"></div>
+          <p class="hint">Crie um bot em @BotFather no Telegram. Para chat_id, mande msg pro bot e use getUpdates.</p>
+        </div>
+
+        <div class="subpanel" id="sub-whatsapp" hidden>
+          <label>Webhook URL (do seu whatsapp-bot)
+            <input type="text" id="cfgWaUrl" placeholder="http://localhost:3000/send" />
+          </label>
+          <label>Secret (opcional, header X-Webhook-Secret)
+            <input type="password" id="cfgWaSecret" placeholder="..." />
+          </label>
+          <div class="row-flex">
+            <button class="primary outline" id="waSaveBtn">Salvar</button>
+            <button class="primary outline" id="waTestBtn">Enviar teste</button>
+          </div>
+          <span class="dev-status" id="waStatus">—</span>
+          <p class="hint">
+            O SERVUS faz POST {to, text} no seu bot. Compativel com Baileys/whatsapp-web.js.
+            Caso seu bot precise de outro formato, ajuste no codigo dele.
+          </p>
+        </div>
+
+        <div class="subpanel" id="sub-contacts" hidden>
+          <div class="row-flex">
+            <input type="text" id="newContactName" placeholder="Nome" style="flex:1" />
+            <input type="text" id="newContactPhone" placeholder="Telefone" style="flex:1" />
+          </div>
+          <div class="row-flex">
+            <input type="text" id="newContactEmail" placeholder="Email" style="flex:1" />
+            <input type="text" id="newContactTg" placeholder="Telegram chat_id" style="flex:1" />
+            <button class="primary" id="addContactBtn">+</button>
+          </div>
+          <div id="contactsList"></div>
+        </div>
+
+        <div class="subpanel" id="sub-templates" hidden>
+          <label>Nome
+            <input type="text" id="newTplName" placeholder="cobranca" />
+          </label>
+          <label>Texto
+            <textarea id="newTplText" rows="4" placeholder="Oi {nome}, lembrete da fatura..."></textarea>
+          </label>
+          <button class="primary" id="addTplBtn">Adicionar template</button>
+          <div id="templatesList"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-hw" hidden>
+        <div class="hw-grid">
+          <div class="hw-card">
+            <div class="hw-label">CPU</div>
+            <div class="hw-value" id="hwCpuVal">—</div>
+            <div class="hw-bar"><div class="hw-bar-fill" id="hwCpuBar"></div></div>
+            <div class="hw-sub" id="hwCpuSub">—</div>
+          </div>
+          <div class="hw-card">
+            <div class="hw-label">RAM</div>
+            <div class="hw-value" id="hwRamVal">—</div>
+            <div class="hw-bar"><div class="hw-bar-fill" id="hwRamBar"></div></div>
+            <div class="hw-sub" id="hwRamSub">—</div>
+          </div>
+          <div class="hw-card">
+            <div class="hw-label">GPU</div>
+            <div class="hw-value" id="hwGpuVal">—</div>
+            <div class="hw-bar"><div class="hw-bar-fill" id="hwGpuBar"></div></div>
+            <div class="hw-sub" id="hwGpuSub">—</div>
+          </div>
+          <div class="hw-card">
+            <div class="hw-label">TEMP</div>
+            <div class="hw-value" id="hwTempVal">—</div>
+            <div class="hw-bar"><div class="hw-bar-fill" id="hwTempBar"></div></div>
+            <div class="hw-sub" id="hwTempSub">CPU / GPU</div>
+          </div>
+        </div>
+        <div class="row-flex" style="margin-top:8px">
+          <span class="row-title">Discos</span>
+          <button class="primary outline" id="hwRefreshBtn" style="margin-left:auto">Atualizar</button>
+        </div>
+        <div id="hwDisks"></div>
+        <div class="row-title" style="margin-top:8px">Processos (top CPU)</div>
+        <div id="hwProcs"></div>
+        <p class="hint">Atualiza automaticamente a cada 2 segundos enquanto a aba esta aberta.</p>
+      </div>
+
+      <div class="panel" id="panel-system" hidden>
+        <div class="sysrow">
+          <span class="syslabel">App</span>
+          <span class="sysval" id="sysAppName">SERVUS</span>
+        </div>
+        <div class="sysrow">
+          <span class="syslabel">Versao instalada</span>
+          <span class="sysval" id="sysVersion">…</span>
+        </div>
+        <div class="sysrow">
+          <span class="syslabel">Status</span>
+          <span class="sysval" id="sysStatus">—</span>
+        </div>
+        <div id="updateBox" hidden>
+          <div class="update-card">
+            <div>
+              <div class="update-title">Nova versao disponivel: <b id="updLatest">—</b></div>
+              <div class="update-notes" id="updNotes"></div>
+            </div>
+            <button class="primary" id="installUpdateBtn">Atualizar agora</button>
+          </div>
+          <div class="progress" id="updProgress" hidden>
+            <div class="progress-bar" id="updProgressBar"></div>
+          </div>
+        </div>
+        <button class="primary outline" id="checkUpdateBtn">Verificar atualizacao</button>
+        <p class="hint">
+          O SERVUS verifica updates automaticamente ao abrir. Quando uma nova versao
+          estiver disponivel, voce e notificado aqui.
+        </p>
+
+        <div class="divider"></div>
+        <div class="row-flex">
+          <div class="row-text">
+            <div class="row-title">Modo desenvolvedor</div>
+            <div class="row-sub">Mostra blocos de codigo e saida no chat (uteis pra debug)</div>
+          </div>
+          <label class="switch"><input type="checkbox" id="cfgShowCode" /><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <footer class="modal-foot">
+        <button class="ghost" id="cancelBtn">Cancelar</button>
+        <button class="primary" id="saveBtn">Salvar</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Sidebar de historico -->
+  <aside class="sidebar" id="historySidebar" hidden>
+    <header class="sidebar-head">
+      <h3>HISTORICO</h3>
+      <button class="ghost" id="closeHistoryBtn">✕</button>
+    </header>
+    <div class="sidebar-list" id="historyList"></div>
+  </aside>
+
+  <!-- Dropzone overlay -->
+  <div class="dropzone" id="dropzone" hidden>
+    <div class="dropzone-inner">SOLTAR PARA ENVIAR</div>
+  </div>
+
+  <audio id="player" hidden></audio>
+  <script src="app.js"></script>
+</body>
+</html>

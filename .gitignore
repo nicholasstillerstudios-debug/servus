@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.spec.bak
+
+# PyInstaller build artifacts
+build/
+dist/
+
+# Release binaries (sao publicados via GitHub Releases no repo servus-updates)
+release/
+*.exe
+*.zip
+
+# Logs e config local
+crash.log
+*.log
+build.log
+
+# Modelos baixados em runtime (vao pra %APPDATA%, mas se forem testados localmente)
+**/models/whisper-*/
+**/models/vosk-model-*/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Audit scripts temporarios
+_audit*.py
+_test_*.py
+_list_*.py
+test_*.py
+test_fix.txt
